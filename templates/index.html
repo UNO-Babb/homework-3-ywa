@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hexagon Tile Game</title>
+    <title>Square Tile Game</title>
     <style>
         body {
             display: flex;
@@ -16,44 +16,148 @@
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(10, 60px);
-            grid-template-rows: repeat(10, 52px);
+            grid-template-columns: repeat(10, 60px); /* 10 columns */
+            grid-template-rows: repeat(10, 60px);    /* 10 rows */
             gap: 2px;
         }
-        .hex {
+        .square {
             width: 60px;
-            height: 52px;
+            height: 60px;
             background-color: lightgray;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             transition: background-color 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .piece {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+        .red { background-color: red; }
+        .blue { background-color: blue; }
+        .controls {
+            position: absolute;
+            bottom: 5px;
+            display: none;
+        }
+        .square:hover .controls {
+            display: block;
+        }
+        .winner {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: green;
+        }
+        .piece-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .piece-buttons button {
+            margin: 0 5px;
         }
     </style>
 </head>
 <body>
 
 <div id="board">
-    <!-- Hexagonal tiles will be added here on clicks -->
+    <!-- Square tiles will be added here -->
+</div>
+<div class="winner" id="winner"></div>
+
+<div class="piece-buttons">
+    <button id="moveUp">Up</button>
+    <button id="moveDown">Down</button>
+    <button id="moveLeft">Left</button>
+    <button id="moveRight">Right</button>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    let selectedPiece = null;  // Keeps track of the selected piece
+
     $(document).ready(function() {
-        // Create an empty board of hex tiles
-        for (let i = 0; i < 100; i++) {
-            const hexTile = $('<div class="hex"></div>');
-            hexTile.data("clicked", false);  // Track if a tile has been clicked
-            $('#board').append(hexTile);
+        // Create an empty board of square tiles
+        for (let row = 0; row < 10; row++) {
+            for (let col = 0; col < 10; col++) {
+                const squareTile = $('<div class="square"></div>');
+                squareTile.data("coords", [row, col]);  // Store coordinates
+                $('#board').append(squareTile);
+            }
         }
 
-        // Add color to hex tiles on click
-        $('#board').on('click', '.hex', function() {
-            if (!$(this).data("clicked")) {  // Only allow one click per tile
-                $.getJSON('/add_tile', function(data) {
-                    $(this).css('background-color', data.color);
-                    $(this).data("clicked", true);  // Mark as clicked
-                }.bind(this));
+        // Create player pieces
+        const pieces = [
+            { player: "Player 1", id: "p1", color: "red", x: 0, y: 0 },
+            { player: "Player 1", id: "p2", color: "red", x: 0, y: 1 },
+            { player: "Player 2", id: "p1", color: "blue", x: 9, y: 9 },
+            { player: "Player 2", id: "p2", color: "blue", x: 9, y: 8 }
+        ];
+
+        pieces.forEach(piece => {
+            const pieceElem = $('<div class="piece"></div>').addClass(piece.color);
+            const square = $(`#board .square`).eq(piece.y * 10 + piece.x);
+            square.append(pieceElem);
+        });
+
+        // Handle selecting a piece by clicking on it
+        $('#board').on('click', '.square', function() {
+            const [row, col] = $(this).data("coords");
+
+            // Check if a piece exists at the clicked position
+            const pieceElem = $(this).find('.piece');
+            if (pieceElem.length > 0) {
+                selectedPiece = { row, col, pieceElem };  // Store the selected piece coordinates
+                console.log(`Selected piece at ${row}, ${col}`);
             }
         });
+
+        // Move buttons logic
+        $('#moveUp').click(function() {
+            if (selectedPiece) {
+                movePiece(selectedPiece.row - 1, selectedPiece.col);
+            }
+        });
+
+        $('#moveDown').click(function() {
+            if (selectedPiece) {
+                movePiece(selectedPiece.row + 1, selectedPiece.col);
+            }
+        });
+
+        $('#moveLeft').click(function() {
+            if (selectedPiece) {
+                movePiece(selectedPiece.row, selectedPiece.col - 1);
+            }
+        });
+
+        $('#moveRight').click(function() {
+            if (selectedPiece) {
+                movePiece(selectedPiece.row, selectedPiece.col + 1);
+            }
+        });
+
+        // Function to move the piece
+        function movePiece(newRow, newCol) {
+            if (newRow < 0 || newRow >= 10 || newCol < 0 || newCol >= 10) {
+                alert("Invalid move: out of bounds.");
+                return;
+            }
+
+            const targetSquare = $(`#board .square`).eq(newRow * 10 + newCol);
+            if (targetSquare.find('.piece').length === 0) {
+                targetSquare.append(selectedPiece.pieceElem);  // Move the piece
+                selectedPiece.row = newRow;
+                selectedPiece.col = newCol;
+            } else {
+                alert("Invalid move: target square already occupied.");
+            }
+        }
     });
 </script>
 

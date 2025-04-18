@@ -1,0 +1,46 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f0f0f0;
+}
+
+.board {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.row {
+    display: flex;
+}
+
+.cell {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    font-size: 12px;
+    background: #fff;
+}
+
+.Player_1 {
+    background: rgba(255, 0, 0, 0.2);
+}
+
+.Player_2 {
+    background: rgba(0, 0, 255, 0.2);
+}
+
+.piece {
+    font-weight: bold;
+    color: black;
+}
+
+.controls button {
+    margin: 1px;
+    font-size: 10px;
+    padding: 2px;
+}
